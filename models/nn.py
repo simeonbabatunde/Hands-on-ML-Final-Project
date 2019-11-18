@@ -65,7 +65,20 @@ class NeuralNet(BaseModel.BaseModel):
             print("Y " + str(self.Y.shape))
             print("M " + str(self.m))
             print("N " + str(self.n))
-            print("Y " + str(self.no_output))
+        
+        
+        # Hardcoded for now
+        # TODO: @richard. Try to set it as a param
+        self.no_output = 3
+        
+        # One Hot Encoding
+        # https://stackoverflow.com/questions/38592324/one-hot-encoding-using-numpy/42874726
+        targets = self.Y.reshape(-1)
+        one_hot_targets = np.eye(self.no_output)[targets.astype('int32')]
+        if self.debug:
+            print(targets[85:])
+            print(one_hot_targets.shape)
+            print(one_hot_targets[85:])
         
         # Random init with zero mean
         np.random.seed(1)
