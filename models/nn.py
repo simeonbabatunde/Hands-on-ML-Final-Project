@@ -16,7 +16,7 @@ def sigmoid_derivative(g):
 
 def cross_entropy_loss(H, Y):
     '''
-    Cost(h_w(x), y) = 1/m SUM( -y * ln (h_w(x)) - (1-y)ln(1 - h_w(x)))
+    Cost(h_w(x), y) = 1/m SUM SUMk=0toK(-y*ln(h_w(x)))
     '''
     m = Y.shape[0]
     Y_neg = -1 * Y
@@ -24,7 +24,26 @@ def cross_entropy_loss(H, Y):
     b_term = np.sum(np.multiply(np.log(1 - H), (1 - Y)))
     C = (1 / m) * ((a_term) - (b_term))
     return C
-    
+
+def cross_entropy_loss_multiclass(H, Y):
+    '''
+    Cost(h_w(x), y) = 1/m SUM( -y * ln (h_w(x)) - (1-y)ln(1 - h_w(x)))
+    '''
+    m = Y.shape[0]
+    Y_neg = -1 * Y
+    a_term = np.sum(np.log(H) * Y_neg)
+    C = (1 / m) * (a_term)
+    return C
+     
+def softmax(z):
+    '''
+    Squashes the output of the neurons in a layer into output probabilities
+    g(z) = (e^z) / ∑_j=0_no_output e^zj.
+    '''
+    z = z - np.max(z, axis=1, keepdims=True)
+    z_exp = np.exp(z)
+    z_class_sum = np.sum(z_exp, axis=1, keepdims=True)
+    return z_exp / z_class_sum
 
 class NeuralNet(BaseModel.BaseModel):
     '''
@@ -46,8 +65,9 @@ class NeuralNet(BaseModel.BaseModel):
         self.W_0 = None
         self.W_1 = None
         self.no_hidden = 12
-        self.alpha = 0.001
-        self.no_epochs = 40000
+        self.alpha = 0.0001
+        #self.no_epochs = 40000
+        self.no_epochs = 1000
         self.debug = True
         
     def train(self, tr_set):
@@ -55,6 +75,10 @@ class NeuralNet(BaseModel.BaseModel):
         self.X = tr_set[:, :-1]
         self.Y = tr_set[:, -1:]
         self.m = tr_set.shape[0]
+        # Adding bias x0
+        bias = np.zeros((self.m, 1))
+        bias += 1
+        self.X = np.column_stack((bias, self.X))
         self.n = self.X.shape[1]
         self.no_hidden = self.n
         self.no_output = self.Y.shape[1]
@@ -75,6 +99,8 @@ class NeuralNet(BaseModel.BaseModel):
         # https://stackoverflow.com/questions/38592324/one-hot-encoding-using-numpy/42874726
         targets = self.Y.reshape(-1)
         one_hot_targets = np.eye(self.no_output)[targets.astype('int32')]
+        self.Y = one_hot_targets
+        
         if self.debug:
             print(targets[85:])
             print(one_hot_targets.shape)
@@ -96,19 +122,25 @@ class NeuralNet(BaseModel.BaseModel):
             a_1 = np.dot(a_0, self.W_0)
             a_1 = sigmoid(a_1)
             a_2 = np.dot(a_1, self.W_1)
-            a_2 = sigmoid(a_2)
+            a_2 = softmax(a_2)
             
+            #print(a_2.shape)
+            #print(self.Y.shape)
             # Output Error
             a_2_err = a_2 - self.Y
             # Calculate Cost Function
-            cost = cross_entropy_loss(a_2, self.Y)
-            if i % 5000 == 0:
+            cost = cross_entropy_loss_multiclass(a_2, self.Y)
+            if i == 0:
+                print("Init Cost " + str(cost))
+            if i % 50 == 0:
                 print("Cost " + str(cost))
 
             
             # For each point on the sigmoid, we need to calculate the direction of 
             # slope
-            a_2_delta = np.multiply(a_2_err, sigmoid_derivative(a_2))
+            #a_2_delta = np.multiply(a_2_err, sigmoid_derivative(a_2))
+            # No more sigmoids in this layer
+            a_2_delta = a_2_err
             
             # Hidden Layer Error
             a_1_err = np.dot(a_2_delta, self.W_1.T)
