@@ -149,6 +149,20 @@ class NeuralNet(BaseModel.BaseModel):
             self.W_1 -= self.alpha * (np.dot(a_1.T, a_2_delta))
             self.W_0 -= self.alpha * (np.dot(a_0.T, a_1_delta))
             
-    def test(ts_set):
-        pass
-
+    def test(self, ts_set):
+        ts_data = ts_set[:, :-1]
+        
+        no_tests = ts_data.shape[0]        
+        # Adding bias x0
+        bias = np.zeros((no_tests, 1))
+        bias += 1
+        ts_data = np.column_stack((bias, ts_data))
+        
+        a_0 = ts_data
+        a_1 = np.dot(a_0, self.W_0)
+        a_1 = sigmoid(a_1)
+        a_2 = np.dot(a_1, self.W_1)
+        a_2 = softmax(a_2)        
+        pred_class = np.argmax(a_2, axis=1)
+        return np.reshape(pred_class, (-1, 1))
+        

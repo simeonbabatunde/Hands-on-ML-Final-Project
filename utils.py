@@ -1,5 +1,6 @@
 import numpy as np
-
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 '''
 Useful Types
 '''
@@ -53,7 +54,6 @@ def read_file(input_file):
                 ncols = len(cols)
                 for col in range(ncols):
                     data[row, col] = float(cols[col])
-
             return data
     except Exception as e:
         print(e)
@@ -101,7 +101,6 @@ def data_preprocess(input_data, train_percent):
         m,n = standardized_data.shape
         #Split data into training and test
         train, test = standardized_data[:int(m*train_percent), :], standardized_data[int(m*train_percent):, :]
-
         return (train, test)
 
     except Exception as e:
@@ -144,3 +143,18 @@ def get_accuracy_statistics(actual, pred):
     accStat.precision = accStat.f_0 / (accStat.f_0 + accStat.f_10)
     accStat.recall = accStat.f_0 / (accStat.f_0 + accStat.f_01)
     return accStat
+
+def print_accuracy_stats(pred, actual):
+    '''
+    actual : list of actual classes
+    pred : list of predicted classes
+    Prints Accuracy Info (Accuraycy, F1 score and Recall and Precision)
+    '''
+    print("===================================================================")
+    print("Total Correct")
+    print(np.count_nonzero(pred == actual))
+    print("===================================================================")
+    print(classification_report(pred, actual))
+    print("===================================================================")
+    print(confusion_matrix(pred, actual))
+    print("===================================================================")
