@@ -68,7 +68,7 @@ class NeuralNet(BaseModel.BaseModel):
         self.alpha = 0.0001
         #self.no_epochs = 40000
         self.no_epochs = 1000
-        self.debug = True
+        self.debug = False
         
     def train(self, tr_set):
         
