@@ -2,6 +2,7 @@
 import numpy as np
 from utils import *
 import matplotlib.pyplot as plt
+#https://kenzotakahashi.github.io/logistic-regression-from-scratch-in-python.html
 
 
 
